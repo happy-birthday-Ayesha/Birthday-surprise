@@ -681,6 +681,7 @@ Sabse phele toh a big big hug apko 🫂 and apki nazar utar doon thu thu🧿 ..
       let countdownTimer = null;
       let countdownLeft = 60;
       let questionShown = false;
+      let welcomeAutoAdvanceTimer = null;
       let noDodgeCount = 0;
       let confirmRejectCount = 0;
       let giftStarted = false;
@@ -711,8 +712,12 @@ Sabse phele toh a big big hug apko 🫂 and apki nazar utar doon thu thu🧿 ..
           experience.classList.add('visible');
           window.setTimeout(() => { gate.hidden = true; }, 900);
           launchConfetti(46);
-          window.setTimeout(() => showOverlay(noteOverlay), 1800);
-          startCountdown();
+          // Keep the personalized welcome visible until she taps its note button,
+          // or automatically open the note after 15 seconds.
+          clearTimeout(welcomeAutoAdvanceTimer);
+          welcomeAutoAdvanceTimer = window.setTimeout(() => {
+            if (!questionShown) openBirthdayNote();
+          }, 15000);
         } else {
           passwordError.textContent = 'That isn’t the secret word, sweetheart. Try again. ♡';
           gateCard.classList.remove('shake');
@@ -722,10 +727,20 @@ Sabse phele toh a big big hug apko 🫂 and apki nazar utar doon thu thu🧿 ..
         }
       });
 
-      $('openNoteBtn').addEventListener('click', () => {
-        if (!questionShown) showOverlay(noteOverlay);
-        else showOverlay(acceptOverlay);
-      });
+      $('openNoteBtn').addEventListener('click', openBirthdayNote);
+
+      function openBirthdayNote() {
+        clearTimeout(welcomeAutoAdvanceTimer);
+        welcomeAutoAdvanceTimer = null;
+        if (!questionShown) {
+          showOverlay(noteOverlay);
+          // Start the existing 60-second question countdown when the note opens,
+          // not while she is still reading the welcome screen.
+          if (!countdownTimer) startCountdown();
+        } else {
+          showOverlay(acceptOverlay);
+        }
+      }
 
       function startCountdown() {
         clearInterval(countdownTimer);
@@ -1001,7 +1016,7 @@ Always and endlessly yours. ♡`;
         memory2: { src: 'images/memory-2.jpg', caption: 'Add your caption for the second photo in the MEMORY_PHOTOS section of the script. ♡', title: 'Another little memory ♡' }
       };
 
-      $('birthdayLetterText').textContent = BIRTHDAY_LETTER;
+      // Preserve the letter text edited directly in the HTML above.
 
       // Navigation is revealed only after the original candle moment is complete.
       $('enterChaptersBtn').addEventListener('click', () => {
